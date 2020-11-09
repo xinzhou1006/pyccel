@@ -46,7 +46,8 @@ def create_c_setup(mod_name,
             A string containing the contents of the setup file
     """
 
-    code  = "from setuptools import Extension, setup\n"
+    code  = "from numpy.distutils.core import setup, Extension\n"
+    #code  = "from setuptools import Extension, setup\n"
     code += "import numpy\n\n"
 
     wrapper_file = "[ r'{0}' ]".format(wrapper_file)

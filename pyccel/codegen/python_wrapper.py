@@ -6,6 +6,8 @@ import os
 import glob
 import warnings
 
+from numpy.distutils import fcompiler, ccompiler
+
 from pyccel.ast.bind_c                      import as_static_function_call
 from pyccel.ast.core                        import SeparatorComment
 from pyccel.codegen.printing.fcode          import fcode
@@ -29,11 +31,16 @@ fortran_compiler_to_c_equivalent = { 'gfortran' : 'gcc',
         'ifort' : 'icc',
         'pgf90' : 'pgcc' }
 
+tmp_compiler_to_vendor_map = { 'gfortran' : 'gnu95',
+        'gcc' : 'gnu95',
+        'ifort' : 'intelem',
+        'icc' : 'intelem' }
+
 #==============================================================================
 def create_shared_library(codegen,
                           language,
                           pyccel_dirpath,
-                          compiler,
+                          in_compiler,
                           mpi_compiler,
                           accelerator,
                           dep_mods,
@@ -44,6 +51,8 @@ def create_shared_library(codegen,
                           extra_args='',
                           sharedlib_modname=None,
                           verbose = False):
+
+    compiler = tmp_compiler_to_vendor_map[in_compiler]
 
     # Consistency checks
     if not codegen.is_module:
@@ -76,7 +85,7 @@ def create_shared_library(codegen,
             with open(bind_c_filename, 'w') as f:
                 f.writelines(bind_c_code)
 
-            compile_files(bind_c_filename, compiler, flags,
+            compile_files(bind_c_filename, in_compiler, flags,
                 binary=None,
                 verbose=verbose,
                 is_module=True,
@@ -91,9 +100,25 @@ def create_shared_library(codegen,
                 extra_libdirs.append(get_gfortran_library_dir())
             elif compiler == 'ifort':
                 extra_libs.append('ifcore')
-            c_compiler = fortran_compiler_to_c_equivalent[compiler]
+
+            fcompiler.load_all_fcompiler_classes()
+            try:
+                f_compiler = fcompiler.fcompiler_class[compiler]
+            except KeyError:
+                raise NotImplementedError("Unrecognised fortran compiler : {}".format(compiler))
+
         else:
             c_compiler = compiler
+            f_compiler = None
+
+        print(ccompiler.compiler_class.keys())
+        try:
+            c_compiler = ccompiler.compiler_class[compiler]
+        except KeyError:
+            print("Unrecognised c compiler : {}".format(compiler))
+            c_compiler = None#ccompiler.compiler_class["bcpp"]
+            print(c_compiler)
+            #raise NotImplementedError("Unrecognised c compiler : {}".format(compiler))
 
         if sys.platform == 'win32':
             extra_libs.append('quadmath')
@@ -129,12 +154,17 @@ def create_shared_library(codegen,
             f.writelines(setup_code)
 
         setup_filename = os.path.join(pyccel_dirpath, setup_filename)
+
         cmd = [sys.executable, setup_filename, "build"]
+        if c_compiler:
+            cmd.append("--compiler="+c_compiler[0])
+        if f_compiler:
+            cmd.append("--fcompiler="+f_compiler[0])
 
         if verbose:
             print(' '.join(cmd))
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
-                env=dict(os.environ, CC=c_compiler, LDSHARED=c_compiler+" -pthread -shared"))
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)#,
+                #env=dict(os.environ, CC=c_compiler, LDSHARED=c_compiler+" -pthread -shared"))
         out, err = p.communicate()
         if verbose:
             print(out)
