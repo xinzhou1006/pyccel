@@ -46,7 +46,6 @@ runs:
             "/L*V `"$ENV:TEMP\$name.log`""     # Verbose output to this log
         )
         Start-Process -FilePath "msiexec" -ArgumentList $list -Wait
-        cat ms_sdk_install.log
       shell: powershell
     - name: Setup MPI
       run: |
