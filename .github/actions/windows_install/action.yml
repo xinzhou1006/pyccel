@@ -36,8 +36,8 @@ runs:
         curl https://github.com/microsoft/Microsoft-MPI/releases/download/v10.1.1/msmpisdk.msi -o msmpisdk.msi
         #
         # Install MS MPI
-        ./msmpisetup.exe -unattend
-        sleep 5
+        Start-Process -FilePath "./msmpisetup.exe" -ArgumentList "-unattend" -Wait
+        ls
         $msi=msmpisdk.msi
         $list =
         @(
