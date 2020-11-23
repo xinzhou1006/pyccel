@@ -38,7 +38,8 @@ runs:
         # Install MS MPI
         ./msmpisetup.exe -unattend
         sleep 5
-        Start-Process -Wait -FilePath msiexec -ArgumentList "/quiet","/i","msmpisdk.msi"
+        msiexec /quiet /i /log ms_sdk_install.log msmpisdk.msi
+        cat ms_sdk_install.log
       shell: powershell
     - name: Setup MPI
       run: |
@@ -47,6 +48,8 @@ runs:
         $MSMPI_LIB64="C:\\Program Files (x86)\\Microsoft SDKs\\Lib\\x64\\"
         $PATH="${Env:Path}C:\\Program Files\\Microsoft MPI\\Bin;"
         [System.Environment]::SetEnvironmentVariable("Path",$PATH)
+        echo "MSMPI_INC=${MSMPI_INC}" >> $GITHUB_ENV
+        echo "MSMPI_LIB64=${MSMPI_LIB64}" >> $GITHUB_ENV
         echo "Path=${PATH}" >> $GITHUB_ENV
         Get-Childitem -Path "C:\\Program Files" -Recurse -ErrorAction SilentlyContinue -Include mpi.f90
         Get-Childitem -Path "C:\\Program Files (x86)" -Recurse -ErrorAction SilentlyContinue -Include mpi.f90
