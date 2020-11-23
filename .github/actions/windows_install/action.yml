@@ -38,7 +38,14 @@ runs:
         # Install MS MPI
         ./msmpisetup.exe -unattend
         sleep 5
-        msiexec /quiet /i /log ms_sdk_install.log msmpisdk.msi
+        $msi=msmpisdk.msi
+        $list =
+        @(
+            "/I `"$msi`"",                     # Install this MSI
+            "/QN",                             # Quietly, without a UI
+            "/L*V `"$ENV:TEMP\$name.log`""     # Verbose output to this log
+        )
+        Start-Process -FilePath "msiexec" -ArgumentList $list -Wait
         cat ms_sdk_install.log
       shell: powershell
     - name: Setup MPI
