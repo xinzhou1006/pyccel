@@ -38,7 +38,7 @@ runs:
         # Install MS MPI
         ./msmpisetup.exe -unattend
         sleep 5
-        msiexec /i msmpisdk.msi
+        start /wait msiexec -ArgumentList "/quiet","/i","msmpisdk.msi"
       shell: powershell
     - name: Setup MPI
       run: |
