@@ -41,7 +41,7 @@ runs:
         $msi=msmpisdk.msi
         $list =
         @(
-            "/I `"$msi`"",                     # Install this MSI
+            "/I '$msi'",                       # Install this MSI
             "/QN",                             # Quietly, without a UI
             "/L*V `"$ENV:TEMP\$name.log`""     # Verbose output to this log
         )
