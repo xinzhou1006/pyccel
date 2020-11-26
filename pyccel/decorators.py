@@ -1,6 +1,7 @@
 #TODO use pycode and call exec after that in lambdify
 
 __all__ = (
+    'task',
     'lambdify',
     'python',
     'sympy',
@@ -13,6 +14,9 @@ __all__ = (
     'stack_array',
     'allow_negative_index'
 )
+
+def task(f):
+    return f
 
 def lambdify(f):
 

@@ -640,7 +640,6 @@ class SyntaxParser(BasicParser):
                                 bounding_box = (stmt.lineno, stmt.col_offset),
                                 severity='error')
             return container
-
         decorators = {}
         for d in self._visit(stmt.decorator_list):
             tmp_var = str(d) if isinstance(d, Symbol) else str(type(d))
@@ -651,6 +650,9 @@ class SyntaxParser(BasicParser):
                     decorators[tmp_var] = [decorators[tmp_var]] + [d]
             else:
                 decorators[tmp_var] = d
+
+        if 'task' in decorators:
+            return EmptyNode()
 
         if 'bypass' in decorators:
             return EmptyNode()

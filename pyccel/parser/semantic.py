@@ -2415,7 +2415,6 @@ class SemanticParser(BasicParser):
         is_private      = expr.is_private
 
         header = expr.headers
-
         not_used = [d for d in decorators if d not in def_decorators.__all__]
 
         if len(not_used) >= 1:
