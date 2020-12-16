@@ -5,7 +5,8 @@ runs:
   steps:
     - name: Install MPI, OpenMP
       run: |
-        brew install gfortran
+        gfortran-8 --version
+        gfortran-9 --version
         brew install open-mpi
         brew install libomp
         ln -s gfortran-8 gfortran
