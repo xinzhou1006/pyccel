@@ -8,7 +8,9 @@ runs:
         brew install open-mpi
         brew install libomp
         mkdir bin
-        ln -s gfortran-8 bin/gfortran
-        echo "PATH=$(pwd)/bin:${PATH}" >> $GITHUB_ENV
+        which gfortran-8
+        install_folder=$(dirname "$(which gfortran)")
+        ln -s ${install_folder}/gfortran-8 ${install_folder}/gfortran
+        #echo "PATH=$(pwd)/bin:${PATH}" >> $GITHUB_ENV
         echo "MPI_OPTS='--oversubscribe'" >> $GITHUB_ENV
       shell: bash
