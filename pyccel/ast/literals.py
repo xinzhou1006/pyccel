@@ -5,7 +5,7 @@ from sympy.logic.boolalg import BooleanTrue as sp_BooleanTrue, BooleanFalse as s
 
 from .basic              import PyccelAstNode, Basic
 from .datatypes          import (NativeInteger, NativeBool, NativeReal,
-                                  NativeComplex, NativeString, default_precision)
+                                  NativeComplex, NativeString, PrecisionNode, default_precision)
 
 __all__ = (
     'LiteralTrue',
@@ -88,6 +88,8 @@ class LiteralInteger(Basic, Literal):
 class LiteralFloat(sp_Float, Literal):
     """Represents a float literal in python"""
     _dtype     = NativeReal()
+    _PrecisionNode = PrecisionNode(default_precision['float'], _dtype)
+
     def __new__(cls, value, *, precision = default_precision['float']):
         return sp_Float.__new__(cls, value)
 
@@ -99,6 +101,10 @@ class LiteralFloat(sp_Float, Literal):
     @property
     def python_value(self):
         return float(self)
+
+    @property
+    def PrecisionNode(self):
+        return self._PrecisionNode
 
 
 #------------------------------------------------------------------------------

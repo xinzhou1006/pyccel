@@ -337,3 +337,29 @@ def str_dtype(dtype):
         return 'bool'
     else:
         raise TypeError('Unknown datatype {0}'.format(str(dtype)))
+
+class PrecisionNode:
+    """
+    The goal of this class is reprecenting an object for the precision,
+    that object is a property in every class that contains the precision attribute,
+    and it has its printer method in pyccel.codegen.printing.fcode.py.
+    So we can use it as a simple way to print the pricision instead of
+    printing the precision by iso_c_binding dictionary in pyccel.ast.datatypes.
+    """
+    def __init__(self, precision=None, dtype=None):
+        self._precision = precision
+        self._dtype = dtype
+
+    @property
+    def precision(self):
+        """
+        precision of PrecisionNode
+        """
+        return self._precision
+
+    @property
+    def dtype(self):
+        """
+        dtype of PrecisionNode
+        """
+        return self._dtype

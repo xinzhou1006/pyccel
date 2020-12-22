@@ -419,6 +419,14 @@ class FCodePrinter(CodePrinter):
         code = code.replace("'", '')
         return self._get_statement(code) + '\n'
 
+    def _print_PrecisionNode(self, expr):
+        precision = expr.precision
+        if isinstance(expr.dtype, NativeReal):
+            dtype = 'real'
+        code = ""+iso_c_binding[dtype][precision]
+        print("print precision code: ", code ,"precision = ", precision, "dtype = ", dtype, "code == ", code)
+        return code
+
     def _print_TupleImport(self, expr):
         code = '\n'.join(self._print(i) for i in expr.imports)
         return self._get_statement(code) + '\n'
@@ -704,7 +712,7 @@ class FCodePrinter(CodePrinter):
 
     def _print_NumpyFloor(self, expr):
         result_code = self._print_MathFloor(expr)
-        return 'real({}, {})'.format(result_code, iso_c_binding["real"][8])
+        return 'real({}, {})'.format(result_code, iso_c_binding["real"][expr.precision])
 
     # ======================================================================= #
     def _print_PyccelArraySize(self, expr):
@@ -740,6 +748,7 @@ class FCodePrinter(CodePrinter):
         if arg.dtype is NativeInteger():
             return '({})'.format(arg_code)
 
+        #!!!
         prec = expr.precision
         prec_code = self._print(prec)
         return 'floor({}, kind={})'.format(arg_code, prec_code)
@@ -2561,7 +2570,9 @@ class FCodePrinter(CodePrinter):
 
     def _print_LiteralFloat(self, expr):
         printed = CodePrinter._print_Float(self, expr)
-        return "{}_{}".format(printed, iso_c_binding["real"][expr.precision])
+        prec_code = self._print(expr.PrecisionNode)
+        print("print_literalFloat: prec_code == ", prec_code)
+        return "{}_{}".format(printed, prec_code)
 
     def _print_LiteralComplex(self, expr):
         real_str = self._print(expr.real)
