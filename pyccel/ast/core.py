@@ -2147,13 +2147,13 @@ class Variable(Symbol, PyccelAstNode):
 
         if not precision:
             if isinstance(dtype, NativeInteger):
-                precision = default_precision['int']
+                precision = PrecisionNode(dtype,default_precision['int'])
             elif isinstance(dtype, NativeReal):
-                precision = default_precision['real']
+                precision = PrecisionNode(dtype,default_precision['real'])
             elif isinstance(dtype, NativeComplex):
-                precision = default_precision['complex']
+                precision = PrecisionNode(dtype,default_precision['complex'])
             elif isinstance(dtype, NativeBool):
-                precision = default_precision['bool']
+                precision = PrecisionNode(dtype,default_precision['bool'])
         if not isinstance(precision,int) and not isinstance(precision, PrecisionNode) and precision is not None:
             raise TypeError('precision must be an integer or a PrecisionNode object None.')
 
@@ -2161,7 +2161,7 @@ class Variable(Symbol, PyccelAstNode):
         self._dtype = dtype
         self._shape = self.process_shape(shape)
         self._rank  = rank
-        self._precision = precision
+        self._precision = PrecisionNode(dtype, precision)
 
         # ------------ Variable Properties ---------------
         # if class attribute
@@ -2465,7 +2465,7 @@ class DottedVariable(AtomicExpr, sp_Boolean, PyccelAstNode):
             return
         self._dtype     = rhs.dtype
         self._rank      = rhs.rank
-        self._precision = rhs.precision
+        self._precision = Precision(rhs.dtype, rhs.precision)
         self._shape     = rhs.shape
 
     @property
@@ -2623,7 +2623,7 @@ class TupleVariable(Variable):
     def get_vars(self):
         if self._is_homogeneous:
             indexed_var = IndexedVariable(self, dtype=self.dtype, shape=self.shape,
-                prec=self.precision, order=self.order, rank=self. rank)
+                prec=PrecisionNode(self.dtype, self.precision), order=self.order, rank=self. rank)
             args = [Slice(None,None)]*(self.rank-1)
             return [indexed_var[args + [i]] for i in range(len(self._vars))]
         else:
@@ -2783,7 +2783,7 @@ class VariableAddress(Basic, PyccelAstNode):
         self._shape     = variable.shape
         self._rank      = variable.rank
         self._dtype     = variable.dtype
-        self._precision = variable.precision
+        self._precision = PrecisionNode(variable.dtype, variable.precision)
         self._order     = variable.order
 
     @property
@@ -2853,7 +2853,7 @@ class FunctionCall(Basic, PyccelAstNode):
         self._dtype         = func.results[0].dtype if len(func.results) == 1 else NativeTuple()
         self._rank          = func.results[0].rank if len(func.results) == 1 else None
         self._shape         = func.results[0].shape if len(func.results) == 1 else None
-        self._precision     = func.results[0].precision if len(func.results) == 1 else None
+        self._precision     = PrecisionNode(self._dtype, func.results[0].precision) if len(func.results) == 1 else None
 
     @property
     def arguments(self):
@@ -4725,7 +4725,7 @@ class IndexedVariable(IndexedBase, PyccelAstNode):
 
 
         self._dtype      = dtype
-        self._precision  = prec
+        self._precision  = PrecisionNode(dtype, prec)
         self._rank       = rank
         kw_args['order'] = order
         self._kw_args    = kw_args
@@ -4763,7 +4763,7 @@ class IndexedVariable(IndexedBase, PyccelAstNode):
         cls = eval(self.__class__.__name__)
         # TODO what about kw_args in __new__?
         return cls(name, shape=self.shape, dtype=self.dtype,
-                   prec=self.precision, order=self.order, rank=self.rank)
+                   prec=PrecisionNode(self.dtype, self.precision), order=self.order, rank=self.rank)
 
     def _eval_subs(self, old, new):
         return self
@@ -4825,7 +4825,7 @@ class IndexedElement(Expr, PyccelAstNode):
         dtype = self.base.dtype
         shape = self.base.shape
         rank = self.base.rank
-        self._precision = self.base.precision
+        self._precision = PrecisionNode(dtype, self.base.precision)
         if isinstance(dtype, NativeInteger):
             self._dtype = NativeInteger()
         elif isinstance(dtype, NativeReal):
@@ -5142,7 +5142,7 @@ class IfTernaryOperator(Basic, PyccelAstNode):
         if value_false.shape != value_true.shape :
             errors.report('Ternary Operator results should have the same shape', severity='fatal')
         self._dtype = max([value_true.dtype, value_false.dtype], key = lambda x : _tmp_list.index(x))
-        self._precision = max([value_true.precision, value_false.precision])
+        self._precision = PrecisionNode(self._dtype, max([value_true.precision, value_false.precision]))
         self._shape = value_true.shape
         self._rank = value_true.rank
 
@@ -5696,7 +5696,7 @@ class PyccelArraySize(Function, PyccelAstNode):
         self._dtype = NativeInteger()
         self._rank  = 0
         self._shape = ()
-        self._precision = default_precision['integer']
+        self._precision = PrecisionNode(NativeInteger(), default_precision['integer'])
 
     @property
     def arg(self):
