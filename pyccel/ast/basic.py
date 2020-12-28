@@ -3,6 +3,40 @@ from sympy.core.basic import Basic as sp_Basic
 __all__ = ('Basic', 'PyccelAstNode')
 
 #==============================================================================
+class PrecisionNode:
+    """
+    The goal of this class is reprecenting an object for the precision,
+    that object is a property in every class that contains the precision attribute,
+    and it has its printer method in pyccel.codegen.printing.fcode.py.
+    So we can use it as a simple way to print the pricision instead of
+    printing the precision by iso_c_binding dictionary in pyccel.ast.datatypes.
+    """
+    def __init__(self, dtype=None, precision=None):
+        self._precision = precision
+        self._dtype = dtype
+
+    @property
+    def precision(self):
+        """
+        precision of PrecisionNode
+        """
+        return self._precision
+
+    @property
+    def dtype(self):
+        """
+        dtype of PrecisionNode
+        """
+        return self._dtype
+
+    @precision.setter
+    def set_precision(self, precision):
+        self._precision = precision
+    
+    @dtype.setter
+    def set_dtype(self, precision):
+        self._dtype = precision
+#==============================================================================
 class Basic(sp_Basic):
     """Basic class for Pyccel AST."""
     _fst = None
@@ -16,12 +50,22 @@ class Basic(sp_Basic):
         return self._fst
 
 class PyccelAstNode:
-    stage      = None
-    _shape     = None
-    _rank      = None
-    _dtype     = None
-    _precision = None
-    _order     = None
+    stage           = None
+    _shape          = None
+    _rank           = None
+    _dtype          = None
+    _precision      = None
+    _order          = None
+    
+    def __init__(self, dtype=None, precision=None, rank=None, shape=None, order=None):
+        self._dtype = dtype
+        if isinstance(precision, PrecisionNode):
+            self._precision = precision
+        else:
+            self._precision = PrecisionNode(dtype, precision)
+        self._rank = rank
+        self._shape = shape
+        self._order = order
 
     @property
     def shape(self):

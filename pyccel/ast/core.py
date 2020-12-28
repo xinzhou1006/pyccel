@@ -33,7 +33,7 @@ from sympy.utilities.iterables          import iterable
 from sympy.utilities.misc               import filldedent
 
 
-from .basic     import Basic, PyccelAstNode
+from .basic     import Basic, PyccelAstNode, PrecisionNode
 from .builtins  import (PythonEnumerate, PythonLen, PythonList, PythonMap,
                         PythonRange, PythonZip, PythonTuple, PythonBool,
                         PythonInt)
@@ -2154,8 +2154,8 @@ class Variable(Symbol, PyccelAstNode):
                 precision = default_precision['complex']
             elif isinstance(dtype, NativeBool):
                 precision = default_precision['bool']
-        if not isinstance(precision,int) and precision is not None:
-            raise TypeError('precision must be an integer or None.')
+        if not isinstance(precision,int) and not isinstance(precision, PrecisionNode) and precision is not None:
+            raise TypeError('precision must be an integer or a PrecisionNode object None.')
 
         self._alloc_shape = shape
         self._dtype = dtype

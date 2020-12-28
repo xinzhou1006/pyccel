@@ -420,12 +420,7 @@ class FCodePrinter(CodePrinter):
         return self._get_statement(code) + '\n'
 
     def _print_PrecisionNode(self, expr):
-        precision = expr.precision
-        if isinstance(expr.dtype, NativeReal):
-            dtype = 'real'
-        code = ""+iso_c_binding[dtype][precision]
-        print("print precision code: ", code ,"precision = ", precision, "dtype = ", dtype, "code == ", code)
-        return code
+        return ""+iso_c_binding[self._print(expr.dtype)][expr.precision]
 
     def _print_TupleImport(self, expr):
         code = '\n'.join(self._print(i) for i in expr.imports)
@@ -1037,7 +1032,7 @@ class FCodePrinter(CodePrinter):
                     dtype = dtype[:9] +'(len =*)'
                     #TODO improve ,this is the case of character as argument
             else:
-                dtype += '({0})'.format(str(iso_c_binding[dtype][expr.variable.precision]))
+                dtype += '({0})'.format(str(iso_c_binding[dtype][expr.variable.precision.precision]))
 
         code_value = ''
         if expr.value:
@@ -2570,8 +2565,7 @@ class FCodePrinter(CodePrinter):
 
     def _print_LiteralFloat(self, expr):
         printed = CodePrinter._print_Float(self, expr)
-        prec_code = self._print(expr.PrecisionNode)
-        print("print_literalFloat: prec_code == ", prec_code)
+        prec_code = self._print(expr.precision)
         return "{}_{}".format(printed, prec_code)
 
     def _print_LiteralComplex(self, expr):
