@@ -351,14 +351,15 @@ class PyccelBinaryOperator(PyccelOperator):
         Set dtype and precision when the result is real
         """
         self._dtype     = NativeReal()
-        self._precision = max(a.precision for a in reals)
+        self._precision = max(a.precision.precision.precision for a in reals)
 
     def _handle_integer_type(self, integers):
         """
         Set dtype and precision when the result is integer
         """
+
         self._dtype     = NativeInteger()
-        self._precision = max(a.precision for a in integers)
+        self._precision = max(a.precision.precision.precision for a in integers)
 
     def _set_shape_rank(self):
         """ Sets the shape and rank
