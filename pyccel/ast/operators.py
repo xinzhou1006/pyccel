@@ -8,7 +8,7 @@ from sympy.core.expr          import Expr
 
 from ..errors.errors import Errors
 
-from .basic     import PyccelAstNode
+from .basic     import PyccelAstNode, PrecisionNode
 
 from .builtins import PythonInt
 
