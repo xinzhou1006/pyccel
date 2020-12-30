@@ -1,5 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+#------------------------------------------------------------------------------------------#
+# This file is part of Pyccel which is released under MIT License. See the LICENSE file or #
+# go to https://github.com/pyccel/pyccel/blob/master/LICENSE for full license details.     #
+#------------------------------------------------------------------------------------------#
 
 import importlib
 from collections.abc import Iterable
@@ -43,7 +47,7 @@ from .datatypes import (datatype, DataType, CustomDataType, NativeSymbol,
                         NativeGeneric, NativeTuple, default_precision, is_iterable_datatype)
 
 from .literals       import LiteralTrue, LiteralFalse, LiteralInteger
-from .literals       import LiteralImaginaryUnit, LiteralString
+from .literals       import LiteralImaginaryUnit, LiteralString, Literal
 from .itertoolsext   import Product
 from .functionalexpr import GeneratorComprehension as GC
 from .functionalexpr import FunctionalFor
@@ -622,6 +626,7 @@ class Dlist(Basic, PyccelAstNode):
     def __init__(self, val, length):
         self._rank = val.rank
         self._shape = tuple(s if i!= 0 else PyccelMul(s, length) for i,s in enumerate(val.shape))
+        self._order = val.order
 
     @property
     def val(self):
@@ -832,7 +837,8 @@ class Allocate(Basic):
         if variable.rank != len(shape):
             raise ValueError("Incompatible rank in variable allocation")
 
-        if variable.rank > 1 and variable.order != order:
+        # rank is None for lambda functions
+        if variable.rank is not None and variable.rank > 1 and variable.order != order:
             raise ValueError("Incompatible order in variable allocation")
 
         if not isinstance(status, str):
@@ -876,6 +882,48 @@ class Allocate(Basic):
 
     def __hash__(self):
         return hash((id(self.variable), self.shape, self.order, self.status))
+
+#------------------------------------------------------------------------------
+class Deallocate(Basic):
+    """
+    Represents memory deallocation (usually of an array) for code generation.
+    This is relevant to low-level target languages, such as C or Fortran,
+    where the programmer must take care of heap memory deallocation.
+
+    Parameters
+    ----------
+    variable : pyccel.ast.core.Variable
+        The typed variable (usually an array) that needs memory deallocation.
+
+    Notes
+    -----
+    An object of this class is immutable, although it contains a reference to a
+    mutable Variable object.
+
+    """
+    def __new__(cls, *args, **kwargs):
+
+        return Basic.__new__(cls)
+
+    # ...
+    def __init__(self, variable):
+
+        if not isinstance(variable, Variable):
+            raise TypeError("Can only allocate a 'Variable' object, got {} instead".format(type(variable)))
+
+        self._variable = variable
+
+    # ...
+
+    @property
+    def variable(self):
+        return self._variable
+
+    def __eq__(self, other):
+        return (self.variable is other.variable)
+
+    def __hash__(self):
+        return hash(id(self.variable))
 
 #------------------------------------------------------------------------------
 class CodeBlock(Basic):
@@ -1008,27 +1056,22 @@ class NativeOp(with_metaclass(Singleton, Basic)):
 
 
 class AddOp(NativeOp):
-
     _symbol = '+'
 
 
 class SubOp(NativeOp):
-
     _symbol = '-'
 
 
 class MulOp(NativeOp):
-
     _symbol = '*'
 
 
 class DivOp(NativeOp):
-
     _symbol = '/'
 
 
 class ModOp(NativeOp):
-
     _symbol = '%'
 
 
@@ -2233,7 +2276,8 @@ class Variable(Symbol, PyccelAstNode):
             elif s is None or isinstance(s,(Variable, Slice, PyccelAstNode, Function)):
                 new_shape.append(PyccelArraySize(self, i))
             else:
-                raise TypeError('shape elements cannot be '+str(type(s))+'. They must be one of the following types: Integer(pyccel), Variable, Slice, PyccelAstNode, Integer(sympy), int, Function')
+                raise TypeError('shape elements cannot be '+str(type(s))+'. They must be one of the following types: Integer(pyccel),'
+                                'Variable, Slice, PyccelAstNode, Integer(sympy), int, Function')
         return tuple(new_shape)
 
     @property
@@ -2432,31 +2476,33 @@ class DottedVariable(AtomicExpr, sp_Boolean, PyccelAstNode):
 
     def __new__(cls, lhs, rhs):
 
-        if not isinstance(lhs, (
-            Variable,
-            Symbol,
-            IndexedVariable,
-            IndexedElement,
-            IndexedBase,
-            Indexed,
-            Function,
-            DottedVariable,
-            )):
-            raise TypeError('Expecting a Variable or a function call, got instead {0} of type {1}'.format(str(lhs),
-                            str(type(lhs))))
+        if PyccelAstNode.stage != 'syntactic':
+            if not isinstance(lhs, (
+                Literal,
+                Variable,
+                Symbol,
+                IndexedVariable,
+                IndexedElement,
+                IndexedBase,
+                Indexed,
+                Function,
+                DottedVariable,
+                )):
+                raise TypeError('Expecting a Variable or a function call, got instead {0} of type {1}'.format(str(lhs),
+                                str(type(lhs))))
 
-        if not isinstance(rhs, (
-            Variable,
-            Symbol,
-            IndexedVariable,
-            IndexedElement,
-            IndexedBase,
-            Indexed,
-            FunctionCall,
-            Function,
-            )):
-            raise TypeError('Expecting a Variable or a function call, got instead {0} of type {1}'.format(str(rhs),
-                            str(type(rhs))))
+            if not isinstance(rhs, (
+                Variable,
+                Symbol,
+                IndexedVariable,
+                IndexedElement,
+                IndexedBase,
+                Indexed,
+                FunctionCall,
+                Function,
+                )):
+                raise TypeError('Expecting a Variable or a function call, got instead {0} of type {1}'.format(str(rhs),
+                                str(type(rhs))))
 
         return Basic.__new__(cls, lhs, rhs)
 
@@ -2467,6 +2513,7 @@ class DottedVariable(AtomicExpr, sp_Boolean, PyccelAstNode):
         self._rank      = rhs.rank
         self._precision = rhs.precision
         self._shape     = rhs.shape
+        self._order     = rhs.order
 
     @property
     def lhs(self):
@@ -2625,7 +2672,7 @@ class TupleVariable(Variable):
             indexed_var = IndexedVariable(self, dtype=self.dtype, shape=self.shape,
                 prec=self.precision, order=self.order, rank=self. rank)
             args = [Slice(None,None)]*(self.rank-1)
-            return [indexed_var[args + [i]] for i in range(len(self._vars))]
+            return [indexed_var[[i] + args] for i in range(len(self._vars))]
         else:
             return self._vars
 
@@ -2706,16 +2753,20 @@ class Argument(Symbol, PyccelAstNode):
     n
     """
 
-    def __new__(cls, name, *, kwonly=False, **assumptions):
-        return Symbol.__new__(cls, name, **assumptions)
+    def __new__(cls, name, *, kwonly=False, annotation=None):
+        return Symbol.__new__(cls, name)
 
-    def __init__(self, name, *, kwonly=False, **assumptions):
-        self._kwonly = kwonly
+    def __init__(self, name, *, kwonly=False, annotation=None):
+        self._kwonly     = kwonly
+        self._annotation = annotation
 
     @property
     def is_kwonly(self):
         return self._kwonly
 
+    @property
+    def annotation(self):
+        return self._annotation
 
 class ValuedArgument(Basic):
 
@@ -2850,10 +2901,11 @@ class FunctionCall(Basic, PyccelAstNode):
 
         self._funcdef       = func
         self._arguments     = args
-        self._dtype         = func.results[0].dtype if len(func.results) == 1 else NativeTuple()
-        self._rank          = func.results[0].rank if len(func.results) == 1 else None
-        self._shape         = func.results[0].shape if len(func.results) == 1 else None
+        self._dtype         = func.results[0].dtype     if len(func.results) == 1 else NativeTuple()
+        self._rank          = func.results[0].rank      if len(func.results) == 1 else None
+        self._shape         = func.results[0].shape     if len(func.results) == 1 else None
         self._precision     = func.results[0].precision if len(func.results) == 1 else None
+        self._order         = func.results[0].order     if len(func.results) == 1 else None
 
     @property
     def arguments(self):
@@ -4727,6 +4779,7 @@ class IndexedVariable(IndexedBase, PyccelAstNode):
         self._dtype      = dtype
         self._precision  = prec
         self._rank       = rank
+        self._order      = order
         kw_args['order'] = order
         self._kw_args    = kw_args
         self._label      = label
@@ -4824,7 +4877,8 @@ class IndexedElement(Expr, PyccelAstNode):
         self._indices = self._args[1:]
         dtype = self.base.dtype
         shape = self.base.shape
-        rank = self.base.rank
+        rank  = self.base.rank
+        order = self.base.order
         self._precision = self.base.precision
         if isinstance(dtype, NativeInteger):
             self._dtype = NativeInteger()
@@ -4840,8 +4894,6 @@ class IndexedElement(Expr, PyccelAstNode):
             raise TypeError('Undefined datatype')
 
         if shape is not None:
-            if self.order == 'C':
-                shape = shape[::-1]
             new_shape = []
             for a,s in zip(args, shape):
                 if isinstance(a, Slice):
@@ -5144,7 +5196,12 @@ class IfTernaryOperator(Basic, PyccelAstNode):
         self._dtype = max([value_true.dtype, value_false.dtype], key = lambda x : _tmp_list.index(x))
         self._precision = max([value_true.precision, value_false.precision])
         self._shape = value_true.shape
-        self._rank = value_true.rank
+        self._rank  = value_true.rank
+        # rank is None for lambda functions
+        if self._rank is not None and self._rank > 1:
+            if value_false.order != value_true.order :
+                errors.report('Ternary Operator results should have the same order', severity='fatal')
+            self._order = value_true.order
 
 
     @property
@@ -5667,7 +5724,7 @@ def process_shape(shape):
 
     new_shape = []
     for s in shape:
-        if isinstance(s,(LiteralInteger,Variable, Slice, PyccelAstNode, Function)):
+        if isinstance(s,(LiteralInteger, Variable, Slice, PyccelAstNode, Function)):
             new_shape.append(s)
         elif isinstance(s, sp_Integer):
             new_shape.append(LiteralInteger(s.p))
