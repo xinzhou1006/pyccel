@@ -1225,7 +1225,6 @@ class SemanticParser(BasicParser):
                 if getattr(a,'dtype',None) == 'tuple':
                     self._infere_type(a, **settings)
             expr = func(*args, **kwargs)
-            print("\x1B[31;40m PASSED \x1B[31;40")
             return expr
         else:
             expr = FunctionCall(func, args, self._current_function)
@@ -1235,9 +1234,7 @@ class SemanticParser(BasicParser):
         name     = type(expr).__name__
         func     = self.get_function(name)
 
-        print("\x1B[32;40m expr.args", expr.args, "expr.args_END\x1B[0m ")
         args = self._handle_function_args(expr.args, **settings)
-        print("\x1B[33;40m args", args, "args_END\x1B[0m ")
         
         if name == 'lambdify':
             args = self.get_symbolic_function(str(expr.args[0]))

@@ -21,6 +21,8 @@ class PrecisionNode:
     printing the precision by iso_c_binding dictionary in pyccel.ast.datatypes.
     """
     def __init__(self, dtype=None, precision=None):
+        if not isinstance(precision, int):
+            raise TypeError('PrecisionNode: precision must be an integer object or None.')
         self._precision = precision
         self._dtype = dtype
 

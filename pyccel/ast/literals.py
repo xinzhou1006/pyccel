@@ -54,10 +54,10 @@ class Literal(PyccelAstNode):
 class LiteralTrue(Literal, Basic):
     """Represents the python value True"""
     _dtype     = NativeBool()
-    def __new__(cls, precision = default_precision['bool']):
+    def __new__(cls, precision = PrecisionNode(_dtype, default_precision['bool'])):
         return Basic.__new__(cls, precision)
 
-    def __init__(self, precision = default_precision['bool']):
+    def __init__(self, precision = PrecisionNode(_dtype, default_precision['bool'])):
         Literal.__init__(self, precision)
 
     @property
@@ -68,10 +68,10 @@ class LiteralTrue(Literal, Basic):
 class LiteralFalse(Literal, Basic):
     """Represents the python value False"""
     _dtype     = NativeBool()
-    def __new__(cls, precision = default_precision['bool']):
+    def __new__(cls, precision = PrecisionNode(_dtype, default_precision['bool'])):
         return Basic.__new__(cls, precision)
 
-    def __init__(self,precision = default_precision['bool']):
+    def __init__(self,precision = PrecisionNode(_dtype, default_precision['bool'])):
         Literal.__init__(self, precision)
 
     @property
@@ -82,10 +82,10 @@ class LiteralFalse(Literal, Basic):
 class LiteralInteger(Literal, Basic):
     """Represents an integer literal in python"""
     _dtype     = NativeInteger()
-    def __new__(cls, value, precision = default_precision['integer']):
+    def __new__(cls, value, precision = PrecisionNode(_dtype, default_precision['integer'])):
         return Basic.__new__(cls, value)
 
-    def __init__(self, value, precision = default_precision['integer']):
+    def __init__(self, value, precision = PrecisionNode(_dtype, default_precision['integer'])):
         Basic.__init__(self)
         Literal.__init__(self, precision)
         if not isinstance(value, int):
@@ -118,7 +118,7 @@ class LiteralComplex(Literal, Basic):
     """Represents a complex literal in python"""
     _dtype     = NativeComplex()
 
-    def __new__(cls, real, imag, precision = default_precision['complex']):
+    def __new__(cls, real, imag, precision = PrecisionNode(_dtype, default_precision['complex'])):
         if cls is LiteralImaginaryUnit:
             return Basic.__new__(cls, real, imag)
         real_part = cls._collect_python_val(real)
@@ -128,7 +128,7 @@ class LiteralComplex(Literal, Basic):
         else:
             return Basic.__new__(cls, real, imag)
 
-    def __init__(self, real, imag, precision = default_precision['complex']):
+    def __init__(self, real, imag, precision = PrecisionNode(_dtype, default_precision['complex'])):
         Basic.__init__(self)
         Literal.__init__(self, precision)
         self._real_part = LiteralFloat(self._collect_python_val(real))
@@ -162,8 +162,8 @@ class LiteralImaginaryUnit(LiteralComplex):
     """Represents the python value j"""
     def __new__(cls):
         return LiteralComplex.__new__(cls, 0, 1)
-
-    def __init__(self, real=0, imag=1, precision = default_precision['complex']):
+	#!!!
+    def __init__(self, real=0, imag=1, precision = PrecisionNode(NativeComplex(), default_precision['complex'])):
         LiteralComplex.__init__(self, 0, 1)
 
     @property
