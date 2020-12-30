@@ -12,7 +12,7 @@ from sympy.core.expr          import Expr
 
 from ..errors.errors import Errors, PyccelSemanticError
 
-from .basic     import PyccelAstNode
+from .basic     import PyccelAstNode, PrecisionNode
 
 from .builtins import PythonInt
 
@@ -392,6 +392,7 @@ class PyccelBinaryOperator(PyccelOperator):
         """
         Set dtype and precision when the result is integer
         """
+
         self._dtype     = NativeInteger()
         self._precision = max(a.precision for a in integers)
 

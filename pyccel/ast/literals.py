@@ -32,8 +32,8 @@ class Literal(PyccelAstNode):
     _shape     = ()
 
     def __init__(self, precision):
-        if not isinstance(precision, int):
-            raise TypeError("precision must be an integer")
+        if not isinstance(precision, int) and not isinstance(precision, PrecisionNode):
+            raise TypeError("precision must be an integer or a PrecisionNode object")
         self._precision = precision
     @PyccelAstNode.precision.setter
     def precision(self, precision):
@@ -100,12 +100,11 @@ class LiteralInteger(Literal, Basic):
 class LiteralFloat(Literal, sp_Float):
     """Represents a float literal in python"""
     _dtype     = NativeReal()
-    _precision = PrecisionNode(_dtype, default_precision['float'])
 
-    def __new__(cls, value, *, precision = default_precision['float']):
+    def __new__(cls, value, *, precision = PrecisionNode(_dtype, default_precision['float'])):
         return sp_Float.__new__(cls, value)
 
-    def __init__(self, value, *, precision = default_precision['float']):
+    def __init__(self, value, *, precision = PrecisionNode(_dtype, default_precision['float'])):
         if not isinstance(value, (int, float, LiteralFloat)):
             raise TypeError("A LiteralFloat can only be created with an integer or a float")
         Literal.__init__(self, precision)
@@ -114,10 +113,6 @@ class LiteralFloat(Literal, sp_Float):
     def python_value(self):
         return float(self)
     
-    @property
-    def precision(self):
-        return PrecisionNode(self.dtype, default_precision['float']) 
-
 #------------------------------------------------------------------------------
 class LiteralComplex(Literal, Basic):
     """Represents a complex literal in python"""
