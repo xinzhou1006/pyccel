@@ -454,6 +454,19 @@ class PythonCodePrinter(SympyPythonCodePrinter):
     def _print_Continue(self, expr):
         return 'continue\n'
 
+    def _print_While(self,expr):
+        body = self._print(expr.body)
+        body = self._indent_codestring(body)
+        return ('while ({test}):\n'
+                '{body}\n').format(test=self._print(expr.test), body=body)
+
+    def _print_PythonBool(self, expr):
+        if isinstance(expr.arg.dtype, NativeBool):
+            raise NotImplementedError()
+        else:
+            return '{}'.format(self._print(expr.arg))
+
+
     def _print_FunctionCall(self, expr):
         func = expr.funcdef
         f_name = func.name if not expr.interface else expr.interface.name
