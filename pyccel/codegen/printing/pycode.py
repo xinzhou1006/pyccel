@@ -15,11 +15,19 @@ from sympy.printing.pycode import _known_functions
 from sympy.printing.pycode import _known_functions_math
 from sympy.printing.pycode import _known_constants_math
 
-from pyccel.ast.utilities  import build_types_decorator
 from pyccel.ast.core       import CodeBlock
+from pyccel.ast.core import Nil
+from pyccel.ast.datatypes import NativeSymbol, NativeString, str_dtype
+from pyccel.ast.datatypes import NativeInteger, NativeBool, NativeReal
+from pyccel.ast.utilities  import build_types_decorator
 from pyccel.ast.operators  import PyccelAdd, PyccelMul, PyccelDiv, PyccelMinus
 from pyccel.ast.literals  import LiteralInteger, LiteralFloat
 from pyccel.ast.literals  import LiteralTrue
+from pyccel.ast.builtins  import (PythonEnumerate, PythonInt, PythonLen,
+                                  PythonMap, PythonPrint, PythonRange,
+                                  PythonZip, PythonFloat, PythonTuple, PythonList)
+from pyccel.ast.builtins  import PythonComplex, PythonBool
+from pyccel.ast.itertoolsext import Product
 
 from pyccel.errors.errors import Errors
 from pyccel.errors.messages import *
@@ -151,10 +159,31 @@ class PythonCodePrinter(SympyPythonCodePrinter):
         return code
 
     def _print_For(self, expr):
-        iterable = self._print(expr.iterable)
+#        if not isinstance(expr.iterable, (PythonRange, Product , PythonZip,
+#                            PythonEnumerate, PythonMap)):
+        if not isinstance(expr.iterable, (PythonRange, Product, PythonMap)):
+            # Only iterable currently supported are PythonRange or Product
+            errors.report(PYCCEL_RESTRICTION_TODO, symbol=expr,
+                severity='fatal')
+
+        iterable = expr.iterable
+        if isinstance(iterable, PythonRange):
+            iterable = self._print(iterable)
+
+        elif isinstance(iterable, Product):
+            iterable = self._print(iterable)
+
+        elif isinstance(iterable, PythonMap):
+            iterable = PythonRange(PythonLen(iterable.args[1]))
+            iterable = self._print(iterable)
+
+        else:
+            raise NotImplementedError()
+
         target   = expr.target
         if not isinstance(target,(list, tuple, Tuple)):
             target = [target]
+
         target = ','.join(self._print(i) for i in target)
         body   = self._print(expr.body)
         body   = self._indent_codestring(body)
@@ -391,6 +420,30 @@ class PythonCodePrinter(SympyPythonCodePrinter):
 
     def _print_LiteralFalse(self, expr):
         return 'False'
+
+    def _print_FunctionCall(self, expr):
+        func = expr.funcdef
+        f_name = func.name if not expr.interface else expr.interface.name
+
+        args = [a for a in expr.arguments if not isinstance(a, Nil)]
+        args = ['{}'.format(self._print(a)) for a in args]
+        args = ', '.join(args)
+
+        return '{0}({1})'.format(f_name, args)
+
+    def _print_PythonLen(self, expr):
+        var = expr.arg
+        idx = 1 if var.order == 'F' else var.rank
+
+        dtype = var.dtype
+        if dtype is NativeString():
+            return 'len({})'.format(self._print(var))
+        elif var.rank == 1:
+            return 'len({})'.format(self._print(var))
+        else:
+            raise NotImplementedError()
+#            return 'size({},{},{})'.format(self._print(var), self._print(idx), prec)
+
 
     def _print_Deallocate(self, expr):
         return ''
