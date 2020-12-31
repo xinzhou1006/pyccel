@@ -38,7 +38,7 @@ class PythonCodePrinter(SympyPythonCodePrinter):
     ))
     _kc = {k: ''+v for k, v in _known_constants_math.items()}
 
-    def __init__(self, parser=None, settings=None):
+    def __init__(self, parser=None, settings={}):
         self.assert_contiguous = settings.pop('assert_contiguous', False)
         self.parser = parser
         SympyPythonCodePrinter.__init__(self, settings=settings)
@@ -174,6 +174,12 @@ class PythonCodePrinter(SympyPythonCodePrinter):
         step  = self._print(expr.step)
         return 'range({}, {}, {})'.format(start,stop,step)
 
+    def _print_PythonRange(self, expr):
+        start = self._print(expr.start)
+        stop  = self._print(expr.stop)
+        step  = self._print(expr.step)
+        return 'range({}, {}, {})'.format(start,stop,step)
+
     def _print_Product(self, expr):
         args = ','.join(self._print(i) for i in expr.elements)
         return 'product({})'.format(args)
@@ -241,6 +247,9 @@ class PythonCodePrinter(SympyPythonCodePrinter):
 
     def _print_LiteralString(self, expr):
         return '"{}"'.format(self._print(expr.arg))
+
+    def _print_LiteralInteger(self, expr):
+        return '{}'.format(self._print(expr.python_value))
 
     def _print_Shape(self, expr):
         arg = self._print(expr.arg)
