@@ -287,10 +287,14 @@ class PythonCodePrinter(SympyPythonCodePrinter):
     def _print_If(self, expr):
         lines = []
         for i, (c, e) in enumerate(expr.args):
+
+            if (not e) or (isinstance(e, CodeBlock) and not e.body):
+                continue
+
             if i == 0:
                 lines.append("if (%s):" % self._print(c))
 
-            elif i == len(expr.args) - 1 and c is True:
+            elif i == len(expr.args) - 1 and c is LiteralTrue():
                 lines.append("else:")
 
             else:
@@ -443,6 +447,9 @@ class PythonCodePrinter(SympyPythonCodePrinter):
 
     def _print_LiteralFalse(self, expr):
         return 'False'
+
+    def _print_Break(self, expr):
+        return 'break\n'
 
     def _print_FunctionCall(self, expr):
         func = expr.funcdef
