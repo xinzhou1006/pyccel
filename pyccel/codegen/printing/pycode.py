@@ -177,13 +177,17 @@ class PythonCodePrinter(SympyPythonCodePrinter):
     def _print_For(self, expr):
 #        if not isinstance(expr.iterable, (PythonRange, Product , PythonZip,
 #                            PythonEnumerate, PythonMap)):
-        if not isinstance(expr.iterable, (PythonRange, Product, PythonMap)):
+        if not isinstance(expr.iterable, (PythonRange, Product, PythonMap, PythonEnumerate)):
             # Only iterable currently supported are PythonRange or Product
             errors.report(PYCCEL_RESTRICTION_TODO, symbol=expr,
                 severity='fatal')
 
         iterable = expr.iterable
         if isinstance(iterable, PythonRange):
+            iterable = self._print(iterable)
+
+        elif isinstance(expr.iterable, PythonEnumerate):
+            iterable = PythonRange(PythonLen(expr.iterable.element))
             iterable = self._print(iterable)
 
         elif isinstance(iterable, Product):
