@@ -17,6 +17,9 @@ from sympy.printing.pycode import _known_constants_math
 
 from pyccel.ast.utilities  import build_types_decorator
 from pyccel.ast.core       import CodeBlock
+from pyccel.ast.operators  import PyccelAdd, PyccelMul, PyccelDiv, PyccelMinus
+from pyccel.ast.literals  import LiteralInteger, LiteralFloat
+from pyccel.ast.literals  import LiteralTrue
 
 from pyccel.errors.errors import Errors
 from pyccel.errors.messages import *
@@ -352,10 +355,72 @@ class PythonCodePrinter(SympyPythonCodePrinter):
         a = self._print(expr.args[0])
         return 'not {}'.format(a)
 
+    def _print_PyccelMinus(self, expr):
+        args = [self._print(a) for a in expr.args]
+
+        if len(args) == 1:
+            return '-{}'.format(args[0])
+        return ' - '.join(args)
+
     def _print_PyccelArraySize(self, expr):
         arg = self._print(expr.arg)
         index = self._print(expr.index)
         return 'shape({0})[{1}]'.format(arg, index)
+
+    def _print_LiteralInteger(self, expr):
+        return "{0}".format(str(expr.p))
+
+    def _print_FunctionalFor(self, expr):
+        loops = '\n'.join(self._print(i) for i in expr.loops)
+        return loops
+
+    def _print_NativeInteger(self, expr):
+        return 'int'
+
+    def _print_Deallocate(self, expr):
+        return ''
+
+    def _print_Allocate(self, expr):
+        # Transpose indices because of Fortran column-major ordering
+        shape = expr.shape
+
+        var_code = self._print(expr.variable)
+        size_code = ', '.join(self._print(i) for i in shape)
+        shape_code = ', '.join(self._print(i) for i in shape)
+        dtype_code = self._print(expr.variable.dtype)
+        code = ''
+
+        if expr.status == 'unallocated':
+            code += '{0} = zeros(({1}), dtype={2})\n'.format(var_code,
+                                                             shape_code,
+                                                             dtype_code)
+
+        elif expr.status == 'unknown':
+            # TODO improve
+            code += '{0} = zeros(({1}), dtype={2})\n'.format(var_code,
+                                                             shape_code,
+                                                             dtype_code)
+
+        else:
+            raise NotImplementedError('only expr.status=unallocated is treated')
+
+#        elif expr.status == 'unknown':
+#            code += 'if (allocated({})) then\n'.format(var_code)
+#            code += '  if (any(size({}) /= [{}])) then\n'.format(var_code, size_code)
+#            code += '    deallocate({})\n'     .format(var_code)
+#            code += '    allocate({0}({1}))\n'.format(var_code, shape_code)
+#            code += '  end if\n'
+#            code += 'else\n'
+#            code += '  allocate({0}({1}))\n'.format(var_code, shape_code)
+#            code += 'end if\n'
+#
+#        elif expr.status == 'allocated':
+#            code += 'if (any(size({}) /= [{}])) then\n'.format(var_code, size_code)
+#            code += '  deallocate({})\n'     .format(var_code)
+#            code += '  allocate({0}({1}))\n'.format(var_code, shape_code)
+#            code += 'end if\n'
+
+        return code
 
 #==============================================================================
 def pycode(expr, **settings):
