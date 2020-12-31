@@ -374,8 +374,23 @@ class PythonCodePrinter(SympyPythonCodePrinter):
         loops = '\n'.join(self._print(i) for i in expr.loops)
         return loops
 
+    def _print_NativeBool(self, expr):
+        return 'bool'
+
     def _print_NativeInteger(self, expr):
         return 'int'
+
+    def _print_NativeReal(self, expr):
+        return 'float'
+
+    def _print_NativeComplex(self, expr):
+        return 'complex'
+
+    def _print_LiteralTrue(self, expr):
+        return 'True'
+
+    def _print_LiteralFalse(self, expr):
+        return 'False'
 
     def _print_Deallocate(self, expr):
         return ''
@@ -402,7 +417,7 @@ class PythonCodePrinter(SympyPythonCodePrinter):
                                                              dtype_code)
 
         else:
-            raise NotImplementedError('only expr.status=unallocated is treated')
+            raise NotImplementedError('only expr.status=unallocated/unknown is treated')
 
 #        elif expr.status == 'unknown':
 #            code += 'if (allocated({})) then\n'.format(var_code)
