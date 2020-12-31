@@ -87,6 +87,13 @@ class PythonCodePrinter(SympyPythonCodePrinter):
 
         imports = '\n'.join(self._print(i) for i in expr.imports)
         imports = self._indent_codestring(imports)
+
+        functions = expr.functions
+        if len(functions)>0:
+            functions = '\n'.join(self._print(i) for  i in functions)
+            functions = self._indent_codestring(functions)
+            body = functions + '\n' + body
+
         code = ('def {name}({args}):\n'
                 '\n{imports}\n{body}\n').format(name=name, args=args,imports=imports, body=body)
 
