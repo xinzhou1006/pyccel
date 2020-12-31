@@ -105,6 +105,9 @@ class PythonCodePrinter(SympyPythonCodePrinter):
         return code
 
     def _print_Return(self, expr):
+        if len(expr.expr) == 1:
+            return 'return {}'.format(self._print(expr.expr[0]))
+
         return 'return {}'.format(self._print(expr.expr))
 
     def _print_PythonTuple(self, expr):
@@ -348,6 +351,11 @@ class PythonCodePrinter(SympyPythonCodePrinter):
     def _print_PyccelNot(self, expr):
         a = self._print(expr.args[0])
         return 'not {}'.format(a)
+
+    def _print_PyccelArraySize(self, expr):
+        arg = self._print(expr.arg)
+        index = self._print(expr.index)
+        return 'shape({0})[{1}]'.format(arg, index)
 
 #==============================================================================
 def pycode(expr, **settings):
