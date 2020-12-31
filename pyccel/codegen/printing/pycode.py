@@ -123,10 +123,19 @@ class PythonCodePrinter(SympyPythonCodePrinter):
         return code
 
     def _print_Return(self, expr):
-        if len(expr.expr) == 1:
-            return 'return {}'.format(self._print(expr.expr[0]))
 
-        return 'return {}'.format(self._print(expr.expr))
+        code = ''
+        if expr.stmt:
+            code += self._print(expr.stmt)
+
+        if len(expr.expr) == 1:
+            return_code = 'return {}'.format(self._print(expr.expr[0]))
+
+        else:
+            return_code = 'return {}'.format(self._print(expr.expr))
+
+        return '{0}\n{1}'.format(code, return_code)
+
 
     def _print_PythonTuple(self, expr):
         args = ', '.join(self._print(i) for i in expr.args)
