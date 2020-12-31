@@ -123,6 +123,8 @@ class PythonCodePrinter(SympyPythonCodePrinter):
         return code
 
     def _print_Return(self, expr):
+        # TODO def f(n): return n
+        #      adds automaticaly a temp out
 
         code = ''
         if expr.stmt:
