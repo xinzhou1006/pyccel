@@ -451,6 +451,9 @@ class PythonCodePrinter(SympyPythonCodePrinter):
     def _print_Break(self, expr):
         return 'break\n'
 
+    def _print_Continue(self, expr):
+        return 'continue\n'
+
     def _print_FunctionCall(self, expr):
         func = expr.funcdef
         f_name = func.name if not expr.interface else expr.interface.name
