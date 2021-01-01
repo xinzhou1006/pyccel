@@ -19,7 +19,7 @@ from sympy.core.function import Application
 
 from pyccel.ast.datatypes import iso_c_binding
 
-from .basic     import Basic, PyccelAstNode
+from .basic     import Basic, PyccelAstNode, PrecisionNode
 from .datatypes import (NativeInteger, NativeBool, NativeReal,
                         NativeComplex, NativeString, str_dtype,
                         NativeGeneric, default_precision)

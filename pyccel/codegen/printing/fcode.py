@@ -422,7 +422,7 @@ class FCodePrinter(CodePrinter):
         return self._get_statement(code) + '\n'
 
     def _print_PrecisionNode(self, expr):
-        #!!!print("[[[[ expr.precision ", type(expr.precision) ,"]]]]")
+        print("[[[[ expr.precision ", type(expr.precision) ,"]]]]")
         return ""+iso_c_binding[self._print(expr.dtype)][expr.precision]
 
     def _print_TupleImport(self, expr):
@@ -769,7 +769,7 @@ class FCodePrinter(CodePrinter):
 
     def _print_PythonFloat(self, expr):
         value = self._print(expr.arg)
-        return 'Real({0}, {1})'.format(value, iso_c_binding["real"][expr.precision])
+        return 'Real({0}, {1})'.format(value, self._print(expr.precision))
 
     def _print_MathFloor(self, expr):
         arg = expr.args[0]
@@ -2386,12 +2386,13 @@ class FCodePrinter(CodePrinter):
         for b in expr.args[1:]:
             bdtype    = b.dtype
             if adtype is NativeInteger() and bdtype is NativeInteger():
+                print("\x1B[32;40m", type(b) ,"\x1B[0m")
                 b = PythonFloat(b)
             c = self._print(b)
             adtype = bdtype
-            code = 'FLOOR({}/{},{})'.format(code, c, iso_c_binding["integer"][expr.precision])
+            code = 'FLOOR({}/{},{})'.format(code, c, self._print(expr.precision))
             if is_real:
-                code = 'real({}, {})'.format(code, iso_c_binding["real"][expr.precision])
+                code = 'real({}, {})'.format(code, self._print(expr.precision))
         return code
 
     def _print_PyccelRShift(self, expr):
@@ -2613,7 +2614,7 @@ class FCodePrinter(CodePrinter):
         return "({}, {})".format(real_str, imag_str)
 
     def _print_LiteralInteger(self, expr):
-        return "{0}_{1}".format(str(expr.p), iso_c_binding["integer"][expr.precision])
+        return "{0}_{1}".format(str(expr.p), self._print(expr.precision))
 
     def _print_IndexedElement(self, expr):
         if isinstance(expr.base, IndexedVariable):

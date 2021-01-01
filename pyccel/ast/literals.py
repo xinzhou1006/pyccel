@@ -31,10 +31,11 @@ class Literal(PyccelAstNode):
     _rank      = 0
     _shape     = ()
 
-    def __init__(self, precision):
-        if not isinstance(precision, int) and not isinstance(precision, PrecisionNode):
+    def __init__(self, dtype, precision):
+        if not isinstance(precision, int):
             raise TypeError("precision must be an integer or a PrecisionNode object")
-        self._precision = precision
+        self._precision = PrecisionNode(dtype, precision)
+
     @PyccelAstNode.precision.setter
     def precision(self, precision):
         """ Set precision for a literal class"""
@@ -54,11 +55,12 @@ class Literal(PyccelAstNode):
 class LiteralTrue(Literal, Basic):
     """Represents the python value True"""
     _dtype     = NativeBool()
+    #!!!
     def __new__(cls, precision = PrecisionNode(_dtype, default_precision['bool'])):
         return Basic.__new__(cls, precision)
 
-    def __init__(self, precision = PrecisionNode(_dtype, default_precision['bool'])):
-        Literal.__init__(self, precision)
+    def __init__(self, precision = default_precision['bool']):
+        Literal.__init__(self, self._dtype, precision)
 
     @property
     def python_value(self):
@@ -71,8 +73,8 @@ class LiteralFalse(Literal, Basic):
     def __new__(cls, precision = PrecisionNode(_dtype, default_precision['bool'])):
         return Basic.__new__(cls, precision)
 
-    def __init__(self,precision = PrecisionNode(_dtype, default_precision['bool'])):
-        Literal.__init__(self, precision)
+    def __init__(self,precision = default_precision['bool']):
+        Literal.__init__(self, self._dtype, precision)
 
     @property
     def python_value(self):
@@ -85,12 +87,13 @@ class LiteralInteger(Literal, Basic):
     def __new__(cls, value, precision = PrecisionNode(_dtype, default_precision['integer'])):
         return Basic.__new__(cls, value)
 
-    def __init__(self, value, precision = PrecisionNode(_dtype, default_precision['integer'])):
-        Basic.__init__(self)
-        Literal.__init__(self, precision)
+    def __init__(self, value, precision = default_precision['integer']):
         if not isinstance(value, int):
             raise TypeError("A LiteralInteger can only be created with an integer")
         self.p = value
+        Basic.__init__(self)
+        Literal.__init__(self, self._dtype, precision)
+        
 
     @property
     def python_value(self):
@@ -104,10 +107,10 @@ class LiteralFloat(Literal, sp_Float):
     def __new__(cls, value, *, precision = PrecisionNode(_dtype, default_precision['float'])):
         return sp_Float.__new__(cls, value)
 
-    def __init__(self, value, *, precision = PrecisionNode(_dtype, default_precision['float'])):
+    def __init__(self, value, *, precision = default_precision['float']):
         if not isinstance(value, (int, float, LiteralFloat)):
             raise TypeError("A LiteralFloat can only be created with an integer or a float")
-        Literal.__init__(self, precision)
+        Literal.__init__(self, self._dtype, precision)
 
     @property
     def python_value(self):
@@ -130,7 +133,7 @@ class LiteralComplex(Literal, Basic):
 
     def __init__(self, real, imag, precision = PrecisionNode(_dtype, default_precision['complex'])):
         Basic.__init__(self)
-        Literal.__init__(self, precision)
+        Literal.__init__(self, self._dtype, precision)
         self._real_part = LiteralFloat(self._collect_python_val(real))
         self._imag_part = LiteralFloat(self._collect_python_val(imag))
 
@@ -163,7 +166,7 @@ class LiteralImaginaryUnit(LiteralComplex):
     def __new__(cls):
         return LiteralComplex.__new__(cls, 0, 1)
 	#!!!
-    def __init__(self, real=0, imag=1, precision = PrecisionNode(NativeComplex(), default_precision['complex'])):
+    def __init__(self, real=0, imag=1, precision = default_precision['complex']):
         LiteralComplex.__init__(self, 0, 1)
 
     @property

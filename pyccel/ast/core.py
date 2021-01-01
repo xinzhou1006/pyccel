@@ -2204,7 +2204,6 @@ class Variable(Symbol, PyccelAstNode):
         self._dtype = dtype
         self._shape = self.process_shape(shape)
         self._rank  = rank
-        #!!!print("<< core.py Variable class precision type", type(precision), "END")
         self._precision = precision
 
         # ------------ Variable Properties ---------------
