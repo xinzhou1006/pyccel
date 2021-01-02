@@ -50,7 +50,6 @@ class PrecisionNode:
 
     def __gt__(self, other):
         return self.precision > other.precision
-    
     def __lt__(self, other):
         return self.precision < other.precision
 #==============================================================================

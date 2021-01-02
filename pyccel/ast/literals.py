@@ -33,7 +33,7 @@ class Literal(PyccelAstNode):
 
     def __init__(self, dtype, precision):
         if not isinstance(precision, int):
-            raise TypeError("precision must be an integer or a PrecisionNode object")
+            raise TypeError("precision must be an integer object")
         self._precision = PrecisionNode(dtype, precision)
 
     @PyccelAstNode.precision.setter

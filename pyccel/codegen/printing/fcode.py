@@ -422,7 +422,6 @@ class FCodePrinter(CodePrinter):
         return self._get_statement(code) + '\n'
 
     def _print_PrecisionNode(self, expr):
-        print("[[[[ expr.precision ", type(expr.precision) ,"]]]]")
         return ""+iso_c_binding[self._print(expr.dtype)][expr.precision]
 
     def _print_TupleImport(self, expr):
@@ -2386,7 +2385,6 @@ class FCodePrinter(CodePrinter):
         for b in expr.args[1:]:
             bdtype    = b.dtype
             if adtype is NativeInteger() and bdtype is NativeInteger():
-                print("\x1B[32;40m", type(b) ,"\x1B[0m")
                 b = PythonFloat(b)
             c = self._print(b)
             adtype = bdtype

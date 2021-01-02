@@ -299,6 +299,8 @@ class PythonInt(Expr, PyccelAstNode):
         else:
             return Expr.__new__(cls, arg)
 
+    def __init__(self, precision = default_precision['integer']):
+        self._precision = precision
     @property
     def arg(self):
         return self._args[0]

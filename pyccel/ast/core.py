@@ -2205,6 +2205,7 @@ class Variable(Symbol, PyccelAstNode):
         self._shape = self.process_shape(shape)
         self._rank  = rank
         self._precision = precision
+        PyccelAstNode.__init__(dtype, precision, rank, shape, order)
 
         # ------------ Variable Properties ---------------
         # if class attribute

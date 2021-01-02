@@ -9,7 +9,7 @@ These operators all have a precision as detailed here:
 They also have specific rules to determine the dtype, precision, rank, shape
 """
 from sympy.core.expr          import Expr
-
+from sympy.core.symbol import Symbol
 from ..errors.errors import Errors, PyccelSemanticError
 
 from .basic     import PyccelAstNode, PrecisionNode
@@ -103,6 +103,11 @@ class PyccelOperator(Expr, PyccelAstNode):
     """
 
     def __init__(self, *args):
+        print("\x1B[31;40mPyccelOperator in ast.operators.py\narg[0]", type(args[0]))
+        print("arg[1]", args[1], "\x1B[0m")
+        if  isinstance(args[0], PyccelAstNode) and isinstance(args[1], PyccelAstNode):
+            print("\x1B[32;40mPyccelOperator in ast.operators.py\narg[0].precision", args[0].precision)
+            print("arg[1].precision", args[1].precision, "\x1B[0m")
         self._args = tuple(self._handle_precedence(args))
 
         if self.stage == 'syntactic':
@@ -387,6 +392,7 @@ class PyccelBinaryOperator(PyccelOperator):
         """
         self._dtype     = NativeReal()
         self._precision = max(a.precision for a in reals)
+ 
 
     def _handle_integer_type(self, integers):
         """
@@ -628,7 +634,6 @@ class PyccelFloorDiv(PyccelArithmeticOperator):
         The second argument passed to the operator
     """
     _precedence = 13
-
     def __repr__(self):
         return '{} // {}'.format(self.args[0], self.args[1])
 
