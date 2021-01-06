@@ -219,4 +219,3 @@ def get_default_literal_value(dtype):
     else:
         raise TypeError('Unknown type')
     return value
-
