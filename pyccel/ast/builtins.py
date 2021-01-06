@@ -268,9 +268,9 @@ class PythonFloat(Expr, PyccelAstNode):
             return LiteralFloat(arg.p, precision = cls._precision)
         else:
             return Expr.__new__(cls, arg)
-    
-    def __init__(self, precision = default_precision['real']):
-        self._precision = precision
+
+    def __init__(self, arg):
+        self._precision = PrecisionNode(arg.dtype, arg.precision)
 
     @property
     def arg(self):
@@ -299,8 +299,9 @@ class PythonInt(Expr, PyccelAstNode):
         else:
             return Expr.__new__(cls, arg)
 
-    def __init__(self, precision = default_precision['integer']):
-        self._precision = precision
+    def __init__(self, arg):
+        self._precision = PrecisionNode(arg.dtype, arg.precision)
+
     @property
     def arg(self):
         return self._args[0]

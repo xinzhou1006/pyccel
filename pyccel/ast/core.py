@@ -2172,6 +2172,7 @@ class Variable(Symbol, PyccelAstNode):
         is_kwonly=False,
         allows_negative_indexes=False
         ):
+        PyccelAstNode.__init__(self, dtype, precision, rank, shape, order)
 
         # ------------ PyccelAstNode Properties ---------------
         if isinstance(dtype, str) or str(dtype) == '*':
@@ -2206,7 +2207,6 @@ class Variable(Symbol, PyccelAstNode):
         self._shape = self.process_shape(shape)
         self._rank  = rank
         self._precision = precision
-        PyccelAstNode.__init__(dtype, precision, rank, shape, order)
 
         # ------------ Variable Properties ---------------
         # if class attribute

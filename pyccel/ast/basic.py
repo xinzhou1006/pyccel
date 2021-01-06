@@ -73,7 +73,7 @@ class PyccelAstNode:
     _precision      = None
     _order          = None
     
-    def __init__(self, dtype=None, precision= None, rank=None, shape=None, order=None):
+    def __init__(self, dtype=None, precision=None, rank=None, shape=None, order=None):
         self._dtype = dtype
         if isinstance(precision, PrecisionNode):
             self._precision = precision
