@@ -2158,7 +2158,6 @@ class Variable(Symbol, PyccelAstNode):
 
         # ------------ PyccelAstNode Properties ---------------
         if isinstance(dtype, str) or str(dtype) == '*':
-
             dtype = datatype(str(dtype))
         elif not isinstance(dtype, DataType):
             raise TypeError('datatype must be an instance of DataType.')
