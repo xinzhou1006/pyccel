@@ -2387,7 +2387,6 @@ class FCodePrinter(CodePrinter):
             if adtype is NativeInteger() and bdtype is NativeInteger():
                 b = PythonFloat(b)
             c = self._print(b)
-            print(expr.precision)
             adtype = bdtype
             code = 'FLOOR({}/{},{})'.format(code, c, self._print(expr.precision))
             if is_real:

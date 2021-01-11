@@ -629,6 +629,7 @@ class PyccelFloorDiv(PyccelArithmeticOperator):
     @property
     def precision(self):
         return PrecisionNode(self.dtype, self._precision)
+
     _precedence = 13
 
     def __repr__(self):

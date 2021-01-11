@@ -2155,7 +2155,6 @@ class Variable(Symbol, PyccelAstNode):
         is_kwonly=False,
         allows_negative_indexes=False
         ):
-        PyccelAstNode.__init__(self, dtype, precision, rank, shape, order)
 
         # ------------ PyccelAstNode Properties ---------------
         if isinstance(dtype, str) or str(dtype) == '*':
@@ -2175,15 +2174,15 @@ class Variable(Symbol, PyccelAstNode):
 
         if not precision:
             if isinstance(dtype, NativeInteger):
-                precision = PrecisionNode(dtype,default_precision['int'])
+                precision = dtype,default_precision['int']
             elif isinstance(dtype, NativeReal):
-                precision = PrecisionNode(dtype,default_precision['real'])
+                precision = dtype,default_precision['real']
             elif isinstance(dtype, NativeComplex):
-                precision = PrecisionNode(dtype,default_precision['complex'])
+                precision = dtype,default_precision['complex']
             elif isinstance(dtype, NativeBool):
-                precision = PrecisionNode(dtype,default_precision['bool'])
-        if not isinstance(precision,int) and not isinstance(precision, PrecisionNode) and precision is not None:
-            raise TypeError('precision must be an integer or a PrecisionNode object or None.')
+                precision = dtype,default_precision['bool']
+        if not isinstance(precision,int) and precision is not None:
+            raise TypeError('precision must be an integer or None.')
 
         self._alloc_shape = shape
         self._dtype = dtype

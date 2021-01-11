@@ -49,9 +49,13 @@ class PrecisionNode:
         self._dtype = precision
 
     def __gt__(self, other):
-        return self.precision > other.precision
+        if isinstance(other, int):
+            return self.precision > other
+        return self.precision > other
     def __lt__(self, other):
-        return self.precision < other.precision
+        if isinstance(other, int):
+            return self.precision < other
+        return self.precision < other
 #==============================================================================
 class Basic(sp_Basic):
     """Basic class for Pyccel AST."""
