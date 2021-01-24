@@ -127,10 +127,15 @@ class SyntaxParser(BasicParser):
 
             code = read_file(inputs)
 
+            self._filename = inputs
+        else:
+            self._filename = ''
+
         self._code  = code
         self._scope = []
 
-        self.load()
+        if self.filename:
+            self.load()
 
         tree                = extend_tree(code)
         self._fst           = tree
@@ -138,7 +143,9 @@ class SyntaxParser(BasicParser):
         self._dummy_counter = 1
 
         self.parse(verbose=True)
-        self.dump()
+
+        if self.filename:
+            self.dump()
 
     def parse(self, verbose=False):
         """converts python ast to sympy ast."""

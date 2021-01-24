@@ -37,7 +37,11 @@ class Parser(object):
         self._semantic_parser = None
         self._module_parser   = None
 
-        self._input_folder = os.path.dirname(filename)
+        self._input_folder = None
+        if os.path.isfile(filename):
+            self._input_folder = os.path.dirname(filename)
+        else:
+            self._input_folder = ''
 
     @property
     def semantic_parser(self):
@@ -67,7 +71,6 @@ class Parser(object):
     @property
     def d_parsers(self):
         """Returns the d_parsers parser."""
-
         return self._d_parsers
 
     @d_parsers.setter
@@ -77,13 +80,11 @@ class Parser(object):
     @property
     def parents(self):
         """Returns the parents parser."""
-
         return self._parents
 
     @property
     def sons(self):
         """Returns the sons parser."""
-
         return self._sons
 
     @property
@@ -172,7 +173,7 @@ class Parser(object):
             parser.ast         = parse_result.get_focus()
             self.module_parser = None
 
-        return parser.ast
+        return parser
 
     def annotate(self, **settings):
 
